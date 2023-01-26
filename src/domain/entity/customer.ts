@@ -1,3 +1,11 @@
+import EventDispatcher from "../event/@shared/event-dispatcher";
+import EventDispatcherInterface from "../event/@shared/event-dispatcher.interface";
+import EventHandlerInterface from "../event/@shared/event-handler.interface";
+import CustomerAddressChangedEvent from "../event/customer/customer-address-changed.event";
+import CustomerCreatedEvent from "../event/customer/customer-created.event";
+import SendConsoleLog1Event from "../event/customer/handler/send-console-log-1.handler";
+import SendConsoleLog2Event from "../event/customer/handler/send-console-log-2.handler";
+import SendConsoleLogWhenAddressIsChangedHandler from "../event/customer/handler/send-console-log-when-address-is-changed.handler";
 import Address from "./address";
 
 export default class Customer {
@@ -6,11 +14,19 @@ export default class Customer {
   private _address!: Address;
   private _active = false;
   private _rewardPoints = 0;
+  private _eventDispatcher: EventDispatcher
 
-  constructor(id: string, name: string) {
+  constructor(id: string, name: string, eventHandlers?: EventHandlerInterface[]) {
     this._id = id;
     this._name = name
+    this._eventDispatcher = new EventDispatcher()
     this.validate()
+
+    this._eventDispatcher.register('CustomerCreatedEvent', new SendConsoleLog1Event())
+    this._eventDispatcher.register('CustomerCreatedEvent', new SendConsoleLog2Event())
+    this._eventDispatcher.register('CustomerAddressChangedEvent', new SendConsoleLogWhenAddressIsChangedHandler())
+
+    this._eventDispatcher.notify(new CustomerCreatedEvent(this))
   }
 
   validate() {
@@ -20,6 +36,10 @@ export default class Customer {
     if (this._name.length === 0) {
       throw new Error("Name is required");
     }
+  }
+
+  get eventDispatcher() {
+    return this._eventDispatcher
   }
 
   get name() {
@@ -36,6 +56,13 @@ export default class Customer {
 
   set address(address: Address) {
     this._address = address
+  }
+ 
+  changeAddress(address: Address) {
+    this._address = address
+
+    this._eventDispatcher.notify(new CustomerAddressChangedEvent(this._address))
+
   }
 
   get address() {

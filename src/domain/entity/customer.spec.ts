@@ -31,6 +31,39 @@ describe('Customer Unit Tests', () => {
     // Assert
     expect(customer.name).toBe('Sofia')
   })
+  
+  it('should send event when created', () => {
+    const s = jest.spyOn(console, 'log')
+    let customer: Customer = new Customer('1', 'Fritz')
+
+
+    
+    expect(customer.eventDispatcher.getEventHandlers['CustomerCreatedEvent']).toBeDefined()
+    expect(customer.eventDispatcher.getEventHandlers['CustomerCreatedEvent'].length).toBe(2)
+    expect(s).toHaveBeenCalledTimes(2)
+    expect(s).toHaveBeenCalledWith('Esse é o primeiro console.log do evento: CustomerCreated')
+    expect(s).toHaveBeenCalledWith('Esse é o segundo console.log do evento: CustomerCreated')
+
+  })
+  
+  it('should change adress and send event', () => {
+    const customer: Customer = new Customer('1', 'Fritz')
+    const address = new Address('1', 1, '123', 'City')
+    const s = jest.spyOn(customer.eventDispatcher, 'notify')
+
+    customer.address = address
+    expect(customer.address).toBe(address)
+    expect(customer.eventDispatcher.getEventHandlers['CustomerAddressChangedEvent']).toBeDefined()
+    expect(customer.eventDispatcher.getEventHandlers['CustomerAddressChangedEvent'].length).toBe(1)
+
+    const newAddress = new Address('12', 11, '123321', 'City 2')
+    customer.changeAddress(newAddress)
+
+    expect(customer.address).toBe(newAddress)
+
+    expect(s).toHaveBeenCalledTimes(1)
+
+  })
 
   it('should activate customer', () => {
     // Arrange
