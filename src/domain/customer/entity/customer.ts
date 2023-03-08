@@ -1,7 +1,9 @@
 
 
+import { Entity } from "../../@shared/entity/entity.abstract";
 import EventDispatcher from "../../@shared/event/event-dispatcher";
 import EventHandlerInterface from "../../@shared/event/event-handler.interface";
+import { NotificationError } from "../../@shared/notification/notification.error";
 import CustomerAddressChangedEvent from "../event/customer-address-changed.event";
 import CustomerCreatedEvent from "../event/customer-created.event";
 import SendConsoleLog1Event from "../event/handler/send-console-log-1.handler";
@@ -9,7 +11,7 @@ import SendConsoleLog2Event from "../event/handler/send-console-log-2.handler";
 import SendConsoleLogWhenAddressIsChangedHandler from "../event/handler/send-console-log-when-address-is-changed.handler";
 import Address from "./address";
 
-export default class Customer {
+export default class Customer extends Entity{
   private _id: string;
   private _name: string;
   private _address!: Address;
@@ -18,6 +20,7 @@ export default class Customer {
   private _eventDispatcher: EventDispatcher
 
   constructor(id: string, name: string, eventHandlers?: EventHandlerInterface[]) {
+    super();
     this._id = id;
     this._name = name
     this._eventDispatcher = new EventDispatcher()
@@ -32,10 +35,20 @@ export default class Customer {
 
   validate() {
     if (this._id.length === 0) {
-      throw new Error("Id is required");
+      this.notification.addError({
+        message: "Id is required",
+        context: "Customer",
+      })
     }
     if (this._name.length === 0) {
-      throw new Error("Name is required");
+      this.notification.addError({
+        message: "Name is required",
+        context: "Customer",
+      })
+    }
+
+    if (this.notification.hasErrors()) {
+      throw new NotificationError(this.notification.errors)
     }
   }
 
